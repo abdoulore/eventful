@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User can be a creator or an eventee
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  password     String
+  role         Role     @default(EVENTEE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // A creator can have many events
+  events       Event[]
+
+  // An eventee can have many tickets
+  tickets      Ticket[]
+
+  // A user can have many payments
+  payments     Payment[]
+
+  // A user can set many reminders
+  reminders    Reminder[]
+
+  // Refresh tokens tied to this user
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+enum Role {
+  CREATOR
+  EVENTEE
+}
+
+// An event created by a creator
+model Event {
+  id               String      @id @default(uuid())
+  title            String
+  description      String
+  location         String
+  imageUrl         String?
+  startDate        DateTime
+  endDate          DateTime
+  price            Float
+  totalTickets     Int
+  availableTickets Int
+  category         String
+  status           EventStatus @default(DRAFT)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  // Default reminder set by creator at event creation
+  reminderValue    Int?
+  reminderUnit     String?
+
+  // The creator who owns this event
+  creatorId        String
+  creator          User        @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // Tickets sold for this event
+  tickets          Ticket[]
+
+  // Payments made for this event
+  payments         Payment[]
+
+  // Reminders set for this event
+  reminders        Reminder[]
+
+  @@map("events")
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  COMPLETED
+}
+
+// A ticket purchased by an eventee for an event
+model Ticket {
+  id          String       @id @default(uuid())
+  ticketCode  String       @unique // Unique code embedded in the QR
+  qrCode      String       // Base64 QR code image
+  status      TicketStatus @default(ACTIVE)
+  scannedAt   DateTime?    // When the QR was scanned at the event
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // The eventee who owns this ticket
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The event this ticket belongs to
+  eventId     String
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // The payment that produced this ticket
+  payment     Payment?
+
+  @@map("tickets")
+}
+
+enum TicketStatus {
+  ACTIVE    // Valid ticket, not yet scanned
+  SCANNED   // Already used at the event
+  CANCELLED // Cancelled or refunded
+}
+
+// A payment made by an eventee for a ticket
+model Payment {
+  id                String        @id @default(uuid())
+  amount            Float
+  currency          String        @default("NGN")
+  status            PaymentStatus @default(PENDING)
+  paystackReference String        @unique // Reference from Paystack
+  paystackAccessCode String?      // Used to redirect to Paystack checkout
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // The eventee who made the payment
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // The event being paid for
+  eventId           String
+  event             Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // The ticket produced after successful payment
+  ticketId          String?       @unique
+  ticket            Ticket?       @relation(fields: [ticketId], references: [id])
+
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING   // Payment initiated but not confirmed
+  SUCCESS   // Payment confirmed by Paystack webhook
+  FAILED    // Payment failed
+  REFUNDED  // Payment was refunded
+}
+
+// A reminder set for an event — by a creator or an eventee
+model Reminder {
+  id          String       @id @default(uuid())
+  reminderAt  DateTime     // The exact time to send the reminder
+  sent        Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Who set this reminder
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Which event this reminder is for
+  eventId     String
+  event       Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("reminders")
+}
+
+// Refresh tokens stored to allow token rotation and logout
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  // The user this token belongs to
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
