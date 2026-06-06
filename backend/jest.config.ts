@@ -1,16 +1,18 @@
 import type { Config } from 'jest';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+// Use test database if available, fall back to dev database
+if (process.env.DATABASE_URL_TEST) {
+  process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
+}
 
 const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-
-  // Look for tests in the tests folder
   testMatch: ['**/tests/**/*.test.ts'],
-
-  // Collect coverage from all source files
   collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts'],
-
-  // Give integration tests enough time to complete
   testTimeout: 30000,
 };
 
