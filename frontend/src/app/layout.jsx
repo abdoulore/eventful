@@ -1,14 +1,19 @@
-import { Geist, Geist_Mono } from 'next/font/google';
+import { Manrope, Space_Grotesk, Geist_Mono } from 'next/font/google';
 import { Toaster } from 'react-hot-toast';
 import './globals.css';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
+const body = Manrope({
+  variable: '--font-body',
+  subsets: ['latin'],
+});
+
+const display = Space_Grotesk({
+  variable: '--font-display',
   subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+  variable: '--font-mono',
   subsets: ['latin'],
 });
 
@@ -26,16 +31,16 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-surface-50`}>
+      <body className={`${body.variable} ${display.variable} ${geistMono.variable} antialiased bg-surface-50`}>
         {children}
         <Toaster
           position="top-right"
           toastOptions={{
             duration: 4000,
             style: {
-              background: '#0f1117',
-              color: '#f8f9fb',
-              borderRadius: '0.875rem',
+              background: '#111712',
+              color: '#f5f7f4',
+              borderRadius: '0.75rem',
               fontSize: '0.875rem',
             },
           }}

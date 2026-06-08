@@ -52,21 +52,22 @@ export default function DashboardPage() {
           <Sidebar />
 
           <div className="flex-1 flex flex-col gap-6 min-w-0">
-            <div className="flex items-center justify-between">
+            <div className="quiet-panel p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-semibold text-ink-900">Overview</h1>
-                <p className="text-sm text-ink-500 mt-0.5">Your events at a glance</p>
+                <p className="section-kicker mb-2">Creator command center</p>
+                <h1 className="font-display text-3xl font-bold text-ink-900">Overview</h1>
+                <p className="text-sm text-ink-500 mt-1">Your events, sales, scans, and revenue at a glance.</p>
               </div>
               <Link href="/dashboard/events/new" className="btn-primary text-sm flex items-center gap-2">
                 <Plus size={15} />
-                New Event
+                New event
               </Link>
             </div>
 
             {loading ? (
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="card p-5 h-28 animate-pulse bg-surface-50" />
+                  <div key={i} className="card p-5 h-32 animate-pulse bg-white/70" />
                 ))}
               </div>
             ) : (
@@ -79,7 +80,10 @@ export default function DashboardPage() {
             )}
 
             <div className="card p-6">
-              <h2 className="font-semibold text-ink-900 mb-4">Ticket Sales (Last 30 Days)</h2>
+              <div className="mb-5">
+                <p className="section-kicker mb-1">Momentum</p>
+                <h2 className="font-display text-xl font-bold text-ink-900">Ticket sales in the last 30 days</h2>
+              </div>
               {loading ? (
                 <div className="h-56 bg-surface-50 rounded-xl animate-pulse" />
               ) : (
@@ -89,8 +93,11 @@ export default function DashboardPage() {
 
             <div className="card p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="font-semibold text-ink-900">Top Events</h2>
-                <Link href="/dashboard/events" className="text-xs text-brand-600 hover:underline flex items-center gap-1">
+                <div>
+                  <p className="section-kicker mb-1">Best performers</p>
+                  <h2 className="font-display text-xl font-bold text-ink-900">Top events</h2>
+                </div>
+                <Link href="/dashboard/events" className="text-xs font-bold text-brand-700 hover:text-brand-900 flex items-center gap-1">
                   View all <ArrowRight size={12} />
                 </Link>
               </div>
@@ -102,17 +109,20 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : topEvents.length === 0 ? (
-                <p className="text-sm text-ink-500 py-4 text-center">No events yet.</p>
+                <div className="rounded-2xl bg-surface-50 px-4 py-8 text-center">
+                  <p className="text-sm font-semibold text-ink-900">No events yet</p>
+                  <p className="mt-1 text-sm text-ink-500">Create your first event to start tracking sales.</p>
+                </div>
               ) : (
                 <div className="flex flex-col divide-y divide-surface-100">
                   {topEvents.map((event) => (
-                    <div key={event.id} className="py-3 flex items-center justify-between">
+                    <div key={event.id} className="py-4 flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-sm font-medium text-ink-900">{event.title}</p>
+                        <p className="text-sm font-bold text-ink-900">{event.title}</p>
                         <p className="text-xs text-ink-500">{formatDate(event.startDate)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-semibold text-ink-900">{formatCurrency(event.revenue)}</p>
+                        <p className="text-sm font-bold text-ink-900 tabular-nums">{formatCurrency(event.revenue)}</p>
                         <p className="text-xs text-ink-500">{event.ticketsSold} tickets</p>
                       </div>
                     </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Ticket, Eye, EyeOff, Calendar, Users } from 'lucide-react';
+import { Eye, EyeOff, Calendar, Users } from 'lucide-react';
 import api from '../../../lib/api';
 import { saveAuth, isAuthenticated, isCreator } from '../../../lib/auth';
 import toast from 'react-hot-toast';
@@ -62,16 +62,17 @@ export default function RegisterPage() {
   if (!ready) return null;
 
   return (
-    <div className="min-h-screen bg-surface-50 flex items-center justify-center p-4">
+    <div className="min-h-[100dvh] bg-surface-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <Ticket size={24} className="text-brand-600" />
-          <span className="text-xl font-semibold text-ink-900">Eventful</span>
+        <div className="flex items-center justify-center mb-8">
+          <Link href="/" className="rounded-2xl bg-white/70 px-5 py-3 shadow-inset">
+            <img src="/images/logo.png" alt="Eventful" className="h-10 w-auto" />
+          </Link>
         </div>
 
         <div className="card p-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-semibold text-ink-900">Create an account</h1>
+            <h1 className="font-display text-3xl font-bold text-ink-900">Create an account</h1>
             <p className="text-sm text-ink-500 mt-1">Join Eventful today</p>
           </div>
 
@@ -127,10 +128,10 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, role: 'EVENTEE' })}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all
+                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all
                     ${form.role === 'EVENTEE'
-                      ? 'border-brand-500 bg-brand-50 text-brand-700'
-                      : 'border-surface-200 text-ink-500 hover:border-surface-300'
+                      ? 'border-brand-500 bg-brand-50 text-brand-700 shadow-inset'
+                      : 'border-surface-200 bg-white text-ink-500 hover:border-surface-300'
                     }`}
                 >
                   <Users size={20} />
@@ -140,10 +141,10 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setForm({ ...form, role: 'CREATOR' })}
-                  className={`flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all
+                  className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all
                     ${form.role === 'CREATOR'
-                      ? 'border-brand-500 bg-brand-50 text-brand-700'
-                      : 'border-surface-200 text-ink-500 hover:border-surface-300'
+                      ? 'border-brand-500 bg-brand-50 text-brand-700 shadow-inset'
+                      : 'border-surface-200 bg-white text-ink-500 hover:border-surface-300'
                     }`}
                 >
                   <Calendar size={20} />

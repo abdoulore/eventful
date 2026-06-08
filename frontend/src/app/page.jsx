@@ -5,8 +5,9 @@ import Link from 'next/link';
 import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import EventGrid from '../components/events/EventGrid';
-import { ArrowRight, Ticket, Star, Zap } from 'lucide-react';
+import { ArrowRight, CalendarDays, MapPin, ShieldCheck, Sparkles, Ticket } from 'lucide-react';
 import api from '../lib/api';
+import { formatDate, formatCurrency } from '../lib/utils';
 
 export default function HomePage() {
   const [events, setEvents] = useState([]);
@@ -18,7 +19,7 @@ export default function HomePage() {
         const res = await api.get('/events?limit=8&status=PUBLISHED');
         setEvents(res.data.data.events);
       } catch {
-        // Fail silently on homepage
+        // Keep the homepage usable when the API is unavailable.
       } finally {
         setLoading(false);
       }
@@ -26,115 +27,182 @@ export default function HomePage() {
     fetchFeatured();
   }, []);
 
+  const spotlight = events?.[0];
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
       <main className="flex-1">
+        <section className="relative overflow-hidden border-b border-white/70">
+          <div className="container grid grid-cols-1 lg:grid-cols-[1.02fr_0.98fr] gap-10 py-16 lg:py-20 items-center">
+            <div className="max-w-2xl">
+              <div className="section-kicker mb-5 flex items-center gap-2">
+                <Sparkles size={14} />
+                Events, tickets, reminders
+              </div>
 
-        {/* Hero */}
-        <section className="bg-white border-b border-surface-200">
-          <div className="container py-20 flex flex-col items-center text-center">
-            <div className="inline-flex items-center gap-2 bg-brand-50 text-brand-700 text-xs font-medium px-3 py-1.5 rounded-full mb-6">
-              <Zap size={12} />
-              Your passport to unforgettable moments
+              <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl leading-[0.98] text-ink-900">
+                Discover events you'll actually want to leave home for.
+              </h1>
+
+              <p className="mt-6 max-w-xl text-base sm:text-lg leading-8 text-ink-600">
+                Find concerts, theatre, sport, culture, and creator-led gatherings with instant QR tickets and reminders that arrive on time.
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row gap-3">
+                <Link href="/events" className="btn-primary inline-flex items-center justify-center gap-2 text-sm px-6 py-3">
+                  Browse events
+                  <ArrowRight size={15} />
+                </Link>
+                <Link href="/register" className="btn-secondary inline-flex items-center justify-center gap-2 text-sm px-6 py-3">
+                  Host an event
+                </Link>
+              </div>
+
+              <div className="mt-10 grid grid-cols-3 gap-3 max-w-xl">
+                {[
+                  ['QR tickets', 'Ready after checkout'],
+                  ['Creator tools', 'Sales and attendee views'],
+                  ['Reminders', 'Before the date slips by'],
+                ].map(([label, detail]) => (
+                  <div key={label} className="rounded-2xl border border-white/80 bg-white/60 p-3 shadow-inset">
+                    <p className="text-sm font-bold text-ink-900">{label}</p>
+                    <p className="mt-1 text-xs leading-5 text-ink-500">{detail}</p>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <h1 className="text-5xl font-semibold text-ink-900 leading-tight tracking-tight max-w-2xl mb-4">
-              Discover events you'll love
-            </h1>
+            <div className="relative lg:pl-6">
+              <div className="quiet-panel p-3 sm:p-4">
+                <div className="relative overflow-hidden rounded-3xl bg-surface-900 min-h-[420px]">
+                  {spotlight?.imageUrl ? (
+                    <img
+                      src={spotlight.imageUrl}
+                      alt={spotlight.title}
+                      className="absolute inset-0 h-full w-full object-cover opacity-90"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-[linear-gradient(135deg,#121712,#2d3a30_54%,#e14a3b)]" />
+                  )}
 
-            <p className="text-ink-500 text-lg max-w-xl mb-8">
-              From pulsating concerts to captivating theatre, thrilling sports to enlightening
-              cultural gatherings — all in one place.
-            </p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/40 to-transparent" />
 
-            <div className="flex items-center gap-3">
-              <Link href="/events" className="btn-primary text-sm px-6 py-3">
-                Browse Events
-              </Link>
-              <Link href="/register" className="btn-secondary text-sm px-6 py-3">
-                Host an Event
-              </Link>
-            </div>
+                  <div className="absolute left-5 right-5 top-5 flex items-center justify-between">
+                    <span className="rounded-xl bg-white/90 px-3 py-1.5 text-xs font-bold text-ink-900">
+                      Featured pick
+                    </span>
+                    <span className="rounded-xl bg-brand-600 px-3 py-1.5 text-xs font-bold text-white">
+                      {spotlight?.price === 0 ? 'Free' : spotlight ? formatCurrency(spotlight.price) : 'Live soon'}
+                    </span>
+                  </div>
 
-            {/* Stats */}
-            <div className="flex items-center gap-8 mt-14 pt-10 border-t border-surface-200 w-full justify-center">
-              {[
-                { label: 'Events monthly', value: '500+' },
-                { label: 'Happy attendees', value: '20k+' },
-                { label: 'Cities covered', value: '12' },
-              ].map(({ label, value }) => (
-                <div key={label} className="text-center">
-                  <div className="text-2xl font-semibold text-ink-900">{value}</div>
-                  <div className="text-xs text-ink-500 mt-0.5">{label}</div>
+                  <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7 text-white">
+                    <h2 className="font-display text-3xl leading-tight">
+                      {spotlight?.title || 'A cleaner way to find your next event'}
+                    </h2>
+                    <div className="mt-4 grid gap-2 text-sm text-white/80">
+                      <div className="flex items-center gap-2">
+                        <CalendarDays size={15} />
+                        <span>{spotlight ? formatDate(spotlight.startDate) : 'Publish, sell, and scan from one place'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MapPin size={15} />
+                        <span>{spotlight?.location || 'Built for local event discovery'}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* Features */}
-        <section className="border-b border-surface-200 bg-surface-50">
-          <div className="container py-14">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section className="container py-16">
+          <div className="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-6 items-stretch">
+            <div className="quiet-panel p-7 sm:p-8 flex flex-col justify-between">
+              <div>
+                <p className="section-kicker mb-4">Built for both sides</p>
+                <h2 className="font-display text-3xl sm:text-4xl leading-tight text-ink-900">
+                  Event discovery for guests, control room for creators.
+                </h2>
+              </div>
+              <p className="mt-6 text-sm leading-7 text-ink-600 max-w-lg">
+                Eventful keeps the public experience simple while giving organizers the parts that matter: publishing, ticket sales, attendees, analytics, and reminders.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 {
                   icon: Ticket,
-                  title: 'Instant Tickets',
-                  desc: 'Buy tickets in seconds. Your QR code is ready immediately after payment.',
+                  title: 'Instant tickets',
+                  desc: 'Attendees get a QR code as soon as checkout clears.',
                 },
                 {
-                  icon: Star,
-                  title: 'Curated Events',
-                  desc: 'Every event is reviewed to ensure quality experiences across every category.',
+                  icon: ShieldCheck,
+                  title: 'Paystack checkout',
+                  desc: 'Paid events hand off to a familiar secure payment flow.',
                 },
                 {
-                  icon: Zap,
-                  title: 'Smart Reminders',
-                  desc: 'Never miss an event. Set reminders exactly when you need them.',
+                  icon: CalendarDays,
+                  title: 'Reminder timing',
+                  desc: 'Guests can choose when they want a prompt before the event.',
+                },
+                {
+                  icon: Sparkles,
+                  title: 'Creator dashboard',
+                  desc: 'Track revenue, sales, attendees, and event performance.',
                 },
               ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="card p-6">
-                  <div className="w-10 h-10 rounded-xl bg-brand-50 flex items-center justify-center mb-4">
-                    <Icon size={18} className="text-brand-600" />
+                <article key={title} className="card p-5 transition-transform duration-200 hover:-translate-y-1">
+                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-700">
+                    <Icon size={19} />
                   </div>
-                  <h3 className="font-semibold text-ink-900 mb-1">{title}</h3>
-                  <p className="text-sm text-ink-500 leading-relaxed">{desc}</p>
-                </div>
+                  <h3 className="text-base font-bold text-ink-900">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-ink-500">{desc}</p>
+                </article>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Featured events */}
-        <section className="container py-14">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-ink-900">Featured Events</h2>
+        <section className="container pb-16">
+          <div className="mb-7 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div>
+              <p className="section-kicker mb-2">Fresh listings</p>
+              <h2 className="font-display text-3xl text-ink-900">Featured events</h2>
+            </div>
             <Link
               href="/events"
-              className="flex items-center gap-1 text-sm text-brand-600 hover:underline font-medium"
+              className="inline-flex items-center gap-2 text-sm font-bold text-brand-700 hover:text-brand-900 transition-colors"
             >
-              View all <ArrowRight size={14} />
+              View all events
+              <ArrowRight size={15} />
             </Link>
           </div>
 
           <EventGrid events={events} loading={loading} />
         </section>
 
-        {/* CTA */}
-        <section className="bg-brand-600 text-white">
-          <div className="container py-16 text-center">
-            <h2 className="text-3xl font-semibold mb-3 tracking-tight">
-              Ready to host your next event?
-            </h2>
-            <p className="text-brand-100 mb-8 max-w-md mx-auto text-sm">
-              Create events, sell tickets, track analytics, and manage attendees all in one place.
-            </p>
-            <Link href="/register" className="inline-flex items-center gap-2 bg-white text-brand-700
-              font-medium px-6 py-3 rounded-xl hover:bg-brand-50 transition-colors text-sm">
-              Get started free <ArrowRight size={14} />
-            </Link>
+        <section className="container pb-16">
+          <div className="relative overflow-hidden rounded-3xl bg-brand-600 px-6 py-10 sm:px-10 sm:py-12 text-white shadow-elevated">
+            <div className="max-w-2xl">
+              <h2 className="font-display text-3xl sm:text-4xl leading-tight">
+                Ready to put your event in front of people?
+              </h2>
+              <p className="mt-3 max-w-xl text-sm leading-7 text-white/80">
+                Create events, sell tickets, track analytics, and manage attendees without stitching together extra tools.
+              </p>
+              <Link
+                href="/register"
+                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-brand-700 transition-colors hover:bg-brand-50"
+              >
+                Start hosting
+                <ArrowRight size={15} />
+              </Link>
+            </div>
           </div>
         </section>
       </main>

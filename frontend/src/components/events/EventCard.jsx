@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { MapPin, Calendar, Ticket } from 'lucide-react';
+import { Calendar, MapPin, Ticket } from 'lucide-react';
 import { formatDate, formatCurrency, truncate } from '../../lib/utils';
 import Badge from '../ui/Badge';
 
@@ -14,84 +14,83 @@ const categoryColors = {
 
 export default function EventCard({ event }) {
   const sold = event.totalTickets - event.availableTickets;
-  const soldPercent = Math.round((sold / event.totalTickets) * 100);
+  const soldPercent = event.totalTickets ? Math.round((sold / event.totalTickets) * 100) : 0;
   const isSoldOut = event.availableTickets === 0;
 
   return (
-    <Link href={`/events/${event.id}`} className="group block">
-      <div className="card overflow-hidden hover:shadow-elevated transition-shadow duration-200">
-
-        {/* Event image */}
-        <div className="relative h-44 bg-surface-100 overflow-hidden">
+    <Link href={`/events/${event.id}`} className="group block h-full">
+      <article className="card flex h-full flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated">
+        <div className="relative aspect-[4/3] overflow-hidden bg-surface-100">
           {event.imageUrl ? (
             <img
               src={event.imageUrl}
               alt={event.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand-50 to-brand-100">
-              <Ticket size={32} className="text-brand-300" />
+            <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#f5f7f4,#ffe1dd)]">
+              <Ticket size={34} className="text-brand-300" />
             </div>
           )}
 
-          <div className="absolute top-3 left-3">
+          <div className="absolute left-3 top-3">
             <Badge variant={categoryColors[event.category] || 'default'}>
               {event.category}
             </Badge>
           </div>
 
+          <div className="absolute bottom-3 right-3 rounded-xl bg-white/90 px-3 py-1.5 text-xs font-bold text-ink-900 shadow-card">
+            {event.price === 0 ? 'Free' : formatCurrency(event.price)}
+          </div>
+
           {isSoldOut && (
-            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-              <span className="text-white font-semibold text-sm bg-black/60 px-3 py-1 rounded-full">
-                Sold Out
+            <div className="absolute inset-0 flex items-center justify-center bg-ink-900/60">
+              <span className="rounded-xl bg-white px-3 py-1.5 text-sm font-bold text-ink-900">
+                Sold out
               </span>
             </div>
           )}
         </div>
 
-        <div className="p-4">
-          <h3 className="font-semibold text-ink-900 text-sm leading-snug mb-2 group-hover:text-brand-600 transition-colors">
-            {truncate(event.title, 60)}
+        <div className="flex flex-1 flex-col p-4">
+          <h3 className="text-base font-bold leading-snug text-ink-900 transition-colors group-hover:text-brand-700">
+            {truncate(event.title, 68)}
           </h3>
 
-          <div className="flex flex-col gap-1.5 mb-3">
-            <div className="flex items-center gap-1.5 text-xs text-ink-500">
-              <Calendar size={12} />
+          <div className="mt-3 flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-ink-500">
+              <Calendar size={13} />
               <span>{formatDate(event.startDate)}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-ink-500">
-              <MapPin size={12} />
-              <span>{truncate(event.location, 40)}</span>
+            <div className="flex items-center gap-2 text-xs font-medium text-ink-500">
+              <MapPin size={13} />
+              <span>{truncate(event.location, 42)}</span>
             </div>
           </div>
 
-          {/* Ticket progress bar */}
           {!isSoldOut && (
-            <div className="mb-3">
-              <div className="flex justify-between text-xs text-ink-500 mb-1">
+            <div className="mt-4">
+              <div className="mb-1.5 flex justify-between text-xs font-medium text-ink-500">
                 <span>{event.availableTickets} left</span>
                 <span>{soldPercent}% sold</span>
               </div>
-              <div className="h-1 bg-surface-100 rounded-full overflow-hidden">
+              <div className="h-1.5 overflow-hidden rounded-full bg-surface-100">
                 <div
-                  className="h-full bg-brand-500 rounded-full transition-all"
+                  className="h-full rounded-full bg-brand-500 transition-all"
                   style={{ width: `${soldPercent}%` }}
                 />
               </div>
             </div>
           )}
 
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-surface-100">
-            <span className="text-sm font-semibold text-ink-900">
-              {event.price === 0 ? 'Free' : formatCurrency(event.price)}
+          <div className="mt-auto flex items-center justify-between border-t border-surface-100 pt-4">
+            <span className="text-xs font-semibold text-ink-500">
+              by {event.creator?.name || 'Eventful creator'}
             </span>
-            <span className="text-xs text-ink-500">
-              by {event.creator?.name}
-            </span>
+            <span className="text-xs font-bold text-brand-700">Details</span>
           </div>
         </div>
-      </div>
+      </article>
     </Link>
   );
 }

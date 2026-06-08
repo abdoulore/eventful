@@ -50,11 +50,12 @@ export default function EventsPage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <div className="bg-white border-b border-surface-200">
-          <div className="container py-10">
-            <h1 className="text-3xl font-semibold text-ink-900 mb-1">Discover Events</h1>
-            <p className="text-ink-500 text-sm mb-6">
-              Find concerts, theatre shows, sports, and more near you.
+        <div className="border-b border-white/80">
+          <div className="container py-12">
+            <p className="section-kicker mb-3">Event marketplace</p>
+            <h1 className="font-display text-4xl sm:text-5xl font-bold text-ink-900 mb-3">Discover events</h1>
+            <p className="text-ink-600 text-sm sm:text-base mb-7 max-w-2xl">
+              Search concerts, theatre shows, sports, cultural gatherings, and creator-led nights near you.
             </p>
             <EventFilters filters={filters} onChange={setFilters} />
           </div>
@@ -63,7 +64,7 @@ export default function EventsPage() {
         {/* Results */}
         <div className="container py-8">
           {pagination && !loading && (
-            <p className="text-sm text-ink-500 mb-5">
+            <p className="text-sm font-semibold text-ink-500 mb-5">
               {pagination.total} event{pagination.total !== 1 ? 's' : ''} found
             </p>
           )}
@@ -76,7 +77,7 @@ export default function EventsPage() {
               <button
                 onClick={() => handlePageChange(filters.page - 1)}
                 disabled={filters.page === 1}
-                className="p-2 rounded-xl border border-surface-200 hover:bg-surface-100
+                className="p-2 rounded-xl border border-white/80 bg-white hover:bg-surface-100
                            disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronLeft size={16} />
@@ -97,10 +98,10 @@ export default function EventsPage() {
                     <button
                       key={p}
                       onClick={() => handlePageChange(p)}
-                      className={`w-9 h-9 rounded-xl text-sm font-medium transition-colors
+                      className={`w-9 h-9 rounded-xl text-sm font-bold transition-colors
                         ${filters.page === p
-                          ? 'bg-brand-600 text-white'
-                          : 'border border-surface-200 text-ink-700 hover:bg-surface-100'
+                          ? 'bg-ink-900 text-white'
+                          : 'border border-white/80 bg-white text-ink-700 hover:bg-surface-100'
                         }`}
                     >
                       {p}
@@ -111,7 +112,7 @@ export default function EventsPage() {
               <button
                 onClick={() => handlePageChange(filters.page + 1)}
                 disabled={filters.page === pagination.totalPages}
-                className="p-2 rounded-xl border border-surface-200 hover:bg-surface-100
+                className="p-2 rounded-xl border border-white/80 bg-white hover:bg-surface-100
                            disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 <ChevronRight size={16} />
