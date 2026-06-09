@@ -23,9 +23,9 @@ export default function TicketCard({ ticket }) {
         {/* Top stripe */}
         <div className={`h-1.5 ${ticket.status === 'ACTIVE' ? 'bg-brand-500' : ticket.status === 'SCANNED' ? 'bg-ink-300' : 'bg-red-400'}`} />
 
-        <div className="p-5 flex gap-4">
+        <div className="p-5 flex flex-col sm:flex-row gap-4">
           {/* Event image */}
-          <div className="w-16 h-16 rounded-xl bg-surface-100 overflow-hidden shrink-0">
+          <div className="w-full sm:w-28 aspect-[16/9] rounded-xl bg-surface-100 overflow-hidden shrink-0">
             {event?.imageUrl ? (
               <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
             ) : (

@@ -95,8 +95,8 @@ export default function CreatorEventsPage() {
             ) : (
               <div className="flex flex-col gap-3">
                 {events.map((event) => (
-                  <div key={event.id} className="card p-5 flex items-center gap-4">
-                    <div className="w-16 h-16 rounded-xl bg-surface-100 overflow-hidden shrink-0">
+                  <div key={event.id} className="card p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="w-full sm:w-32 aspect-[16/9] rounded-xl bg-surface-100 overflow-hidden shrink-0">
                       {event.imageUrl ? (
                         <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
                       ) : (
