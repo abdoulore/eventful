@@ -61,9 +61,7 @@ export default function CoverImageUpload({
       const formData = new FormData();
       formData.append('image', file);
 
-      const res = await api.post('/uploads/image', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const res = await api.post('/uploads/image', formData);
 
       onChange(res.data.data.imageUrl);
       toast.success('Cover image uploaded');
