@@ -17,7 +17,8 @@ interface CreateEventInput {
   reminderUnit?: string;
 }
 
-interface UpdateEventInput extends Partial<CreateEventInput> {
+interface UpdateEventInput extends Partial<Omit<CreateEventInput, 'imageUrl'>> {
+  imageUrl?: string | null;
   status?: 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED';
 }
 

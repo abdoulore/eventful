@@ -13,6 +13,7 @@ import ticketRoutes from './modules/tickets/ticket.routes';
 import paymentRoutes from './modules/payments/payment.routes';
 import reminderRoutes from './modules/reminders/reminder.routes';
 import analyticsRoutes from './modules/analytics/analytics.routes';
+import uploadRoutes from './modules/uploads/upload.routes';
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/tickets', ticketRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 app.use(errorMiddleware);
 

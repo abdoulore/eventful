@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Navbar from '../../../../../../components/layout/Navbar';
 import Sidebar from '../../../../../../components/layout/Sidebar';
+import CoverImageUpload from '../../../../../../components/events/CoverImageUpload';
 import { ArrowLeft } from 'lucide-react';
 import { isAuthenticated, isCreator } from '../../../../../../lib/auth';
 import api from '../../../../../../lib/api';
@@ -18,6 +19,7 @@ export default function EditEventPage() {
   const [form, setForm] = useState(null);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
@@ -120,7 +122,11 @@ export default function EditEventPage() {
                   <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} className="input resize-none" />
                 </div>
                 {field('location', 'Location')}
-                {field('imageUrl', 'Cover Image URL (optional)')}
+                <CoverImageUpload
+                  value={form.imageUrl}
+                  onChange={(imageUrl) => setForm((prev) => ({ ...prev, imageUrl }))}
+                  onUploadingChange={setImageUploading}
+                />
               </div>
 
               <div className="card p-6 flex flex-col gap-4">
@@ -165,8 +171,8 @@ export default function EditEventPage() {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} className="btn-primary text-sm w-full justify-center py-3">
-                {loading ? 'Saving...' : 'Save Changes'}
+              <button type="submit" disabled={loading || imageUploading} className="btn-primary text-sm w-full justify-center py-3">
+                {imageUploading ? 'Uploading image...' : loading ? 'Saving...' : 'Save Changes'}
               </button>
             </form>
           </div>

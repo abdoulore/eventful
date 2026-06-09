@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../../../../components/layout/Navbar';
 import Sidebar from '../../../../../components/layout/Sidebar';
+import CoverImageUpload from '../../../../../components/events/CoverImageUpload';
 import { ArrowLeft } from 'lucide-react';
 import { isAuthenticated, isCreator } from '../../../../../lib/auth';
 import api from '../../../../../lib/api';
@@ -29,6 +30,7 @@ export default function NewEventPage() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
   const [createdEventId, setCreatedEventId] = useState(null);
 
   useEffect(() => {
@@ -165,7 +167,11 @@ export default function NewEventPage() {
                     {errors.description && <p className="text-xs text-red-500">{errors.description}</p>}
                   </div>
                   {field('location', 'Location', { placeholder: 'e.g. Eko Hotel, Lagos' })}
-                  {field('imageUrl', 'Cover Image URL (optional)', { placeholder: 'https://...' })}
+                  <CoverImageUpload
+                    value={form.imageUrl}
+                    onChange={(imageUrl) => setForm((prev) => ({ ...prev, imageUrl }))}
+                    onUploadingChange={setImageUploading}
+                  />
                 </div>
 
                 <div className="card p-6 flex flex-col gap-4">
@@ -261,10 +267,10 @@ export default function NewEventPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || imageUploading}
                   className="btn-primary text-sm w-full justify-center py-3"
                 >
-                  {loading ? 'Creating...' : 'Create & Publish Event'}
+                  {imageUploading ? 'Uploading image...' : loading ? 'Creating...' : 'Create & Publish Event'}
                 </button>
               </form>
             )}

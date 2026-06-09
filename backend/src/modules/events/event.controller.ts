@@ -21,6 +21,7 @@ const createEventSchema = z.object({
 });
 
 const updateEventSchema = createEventSchema.partial().extend({
+  imageUrl: z.union([z.string().url(), z.literal('')]).optional(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'CANCELLED', 'COMPLETED']).optional(),
 });
 
@@ -79,7 +80,11 @@ export const updateEvent = asyncHandler(async (req: AuthRequest, res: Response, 
   }
 
   const eventId = getParam(req.params.id);
-  const event = await eventService.updateEvent(eventId, req.user!.id, parsed.data);
+  const data = {
+    ...parsed.data,
+    imageUrl: parsed.data.imageUrl === '' ? null : parsed.data.imageUrl,
+  };
+  const event = await eventService.updateEvent(eventId, req.user!.id, data);
 
   res.status(200).json({ success: true, data: event });
 });
