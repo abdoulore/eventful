@@ -103,7 +103,7 @@ export default function EventDetailPage() {
           <div className="lg:col-span-2 flex flex-col gap-6">
 
             {/* Cover image */}
-            <div className="relative h-[420px] rounded-3xl overflow-hidden bg-surface-100 shadow-card">
+            <div className="relative aspect-[16/9] rounded-3xl overflow-hidden bg-surface-100 shadow-card">
               {event.imageUrl ? (
                 <img
                   src={event.imageUrl}
@@ -115,19 +115,17 @@ export default function EventDetailPage() {
                   <Ticket size={48} className="text-brand-200" />
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-ink-900/70 via-transparent to-transparent" />
-              <div className="absolute top-4 left-4">
-                <Badge variant="info">{event.category}</Badge>
-              </div>
-              <div className="absolute bottom-5 left-5 right-5">
-                <h1 className="font-display text-3xl sm:text-5xl leading-tight text-white">
-                  {event.title}
-                </h1>
-              </div>
             </div>
 
             {/* Title + meta */}
             <div className="card p-6 flex flex-col gap-4">
+              <div>
+                <Badge variant="info">{event.category}</Badge>
+                <h1 className="mt-3 font-display text-3xl sm:text-4xl leading-tight text-ink-900">
+                  {event.title}
+                </h1>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex items-center gap-2.5 text-sm text-ink-600">
                   <div className="w-9 h-9 rounded-2xl bg-brand-50 flex items-center justify-center shrink-0">

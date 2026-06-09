@@ -75,19 +75,17 @@ export default function HomePage() {
             </div>
 
             <div className="relative lg:pl-6">
-              <div className="quiet-panel p-3 sm:p-4">
-                <div className="relative overflow-hidden rounded-3xl bg-surface-900 min-h-[420px]">
+              <div className="quiet-panel overflow-hidden p-3 sm:p-4">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-3xl bg-surface-900">
                   {spotlight?.imageUrl ? (
                     <img
                       src={spotlight.imageUrl}
                       alt={spotlight.title}
-                      className="absolute inset-0 h-full w-full object-cover opacity-90"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
                   ) : (
                     <div className="absolute inset-0 bg-[linear-gradient(135deg,#121712,#2d3a30_54%,#e14a3b)]" />
                   )}
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink-900 via-ink-900/40 to-transparent" />
 
                   <div className="absolute left-5 right-5 top-5 flex items-center justify-between">
                     <span className="rounded-xl bg-white/90 px-3 py-1.5 text-xs font-bold text-ink-900">
@@ -97,20 +95,20 @@ export default function HomePage() {
                       {spotlight?.price === 0 ? 'Free' : spotlight ? formatCurrency(spotlight.price) : 'Live soon'}
                     </span>
                   </div>
+                </div>
 
-                  <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7 text-white">
-                    <h2 className="font-display text-3xl leading-tight">
-                      {spotlight?.title || 'A cleaner way to find your next event'}
-                    </h2>
-                    <div className="mt-4 grid gap-2 text-sm text-white/80">
-                      <div className="flex items-center gap-2">
-                        <CalendarDays size={15} />
-                        <span>{spotlight ? formatDate(spotlight.startDate) : 'Publish, sell, and scan from one place'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin size={15} />
-                        <span>{spotlight?.location || 'Built for local event discovery'}</span>
-                      </div>
+                <div className="px-2 pb-2 pt-5">
+                  <h2 className="font-display text-2xl leading-tight text-ink-900">
+                    {spotlight?.title || 'A cleaner way to find your next event'}
+                  </h2>
+                  <div className="mt-4 grid gap-2 text-sm font-semibold text-ink-600">
+                    <div className="flex items-center gap-2">
+                      <CalendarDays size={15} className="text-brand-700" />
+                      <span>{spotlight ? formatDate(spotlight.startDate) : 'Publish, sell, and scan from one place'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin size={15} className="text-brand-700" />
+                      <span>{spotlight?.location || 'Built for local event discovery'}</span>
                     </div>
                   </div>
                 </div>

@@ -20,7 +20,7 @@ export default function EventCard({ event }) {
   return (
     <Link href={`/events/${event.id}`} className="group block h-full">
       <article className="card flex h-full flex-col overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated">
-        <div className="relative aspect-[4/3] overflow-hidden bg-surface-100">
+        <div className="relative aspect-[16/9] overflow-hidden bg-surface-100">
           {event.imageUrl ? (
             <img
               src={event.imageUrl}
@@ -33,16 +33,6 @@ export default function EventCard({ event }) {
             </div>
           )}
 
-          <div className="absolute left-3 top-3">
-            <Badge variant={categoryColors[event.category] || 'default'}>
-              {event.category}
-            </Badge>
-          </div>
-
-          <div className="absolute bottom-3 right-3 rounded-xl bg-white/90 px-3 py-1.5 text-xs font-bold text-ink-900 shadow-card">
-            {event.price === 0 ? 'Free' : formatCurrency(event.price)}
-          </div>
-
           {isSoldOut && (
             <div className="absolute inset-0 flex items-center justify-center bg-ink-900/60">
               <span className="rounded-xl bg-white px-3 py-1.5 text-sm font-bold text-ink-900">
@@ -53,6 +43,15 @@ export default function EventCard({ event }) {
         </div>
 
         <div className="flex flex-1 flex-col p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <Badge variant={categoryColors[event.category] || 'default'}>
+              {event.category}
+            </Badge>
+            <span className="text-sm font-bold text-ink-900">
+              {event.price === 0 ? 'Free' : formatCurrency(event.price)}
+            </span>
+          </div>
+
           <h3 className="text-base font-bold leading-snug text-ink-900 transition-colors group-hover:text-brand-700">
             {truncate(event.title, 68)}
           </h3>
