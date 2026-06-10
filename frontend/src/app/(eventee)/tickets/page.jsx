@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 function TicketsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const reference = searchParams.get('reference');
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('ALL');
@@ -20,28 +21,46 @@ function TicketsPageContent() {
   useEffect(() => {
     if (!isAuthenticated() || !isEventee()) { router.push('/login'); return; }
 
-    // Handle Paystack callback — verify payment if reference exists
-    const reference = searchParams.get('reference');
-    if (reference) {
-      api.get(`/payments/verify/${reference}`)
-        .then(() => toast.success('Payment confirmed! Your ticket is ready.'))
-        .catch(() => toast.error('Could not verify payment'))
-        .finally(() => router.replace('/tickets'));
-    }
+    let cancelled = false;
 
-    fetchTickets();
-  }, [router, searchParams]);
+    const loadTickets = async () => {
+      try {
+        const res = await api.get('/tickets/my-tickets');
+        if (!cancelled) setTickets(res.data.data);
+      } catch {
+        if (!cancelled) toast.error('Failed to load tickets');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
 
-  const fetchTickets = async () => {
-    try {
-      const res = await api.get('/tickets/my-tickets');
-      setTickets(res.data.data);
-    } catch {
-      toast.error('Failed to load tickets');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const verifyPaymentAndLoadTickets = async () => {
+      if (reference) {
+        const storageKey = `eventful-payment-verified:${reference}`;
+        const alreadyHandled = sessionStorage.getItem(storageKey) === '1';
+
+        window.history.replaceState(null, '', window.location.pathname);
+
+        if (!alreadyHandled) {
+          sessionStorage.setItem(storageKey, '1');
+
+          try {
+            await api.get(`/payments/verify/${reference}`);
+            if (!cancelled) toast.success('Payment confirmed! Your ticket is ready.');
+          } catch {
+            sessionStorage.removeItem(storageKey);
+            if (!cancelled) toast.error('Could not verify payment');
+          }
+        }
+      }
+
+      await loadTickets();
+    };
+
+    verifyPaymentAndLoadTickets();
+
+    return () => { cancelled = true; };
+  }, [router, reference]);
 
   const filtered = filter === 'ALL'
     ? tickets
