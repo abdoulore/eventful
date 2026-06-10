@@ -86,7 +86,7 @@ export default function PaymentsPage() {
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500" />
-                <input type="text" placeholder="Search by name, email, event or reference..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" />
+                <input type="text" placeholder="Search customer, email, event, or reference" value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" />
               </div>
               <div className="flex gap-2 flex-wrap">
                 {['ALL', 'SUCCESS', 'PENDING', 'FAILED', 'REFUNDED'].map((s) => (

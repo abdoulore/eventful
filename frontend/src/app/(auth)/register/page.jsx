@@ -81,7 +81,7 @@ export default function RegisterPage() {
               <label className="text-sm font-medium text-ink-700">Full name</label>
               <input
                 type="text"
-                placeholder="Your full name"
+                placeholder="enter your full name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 className={`input ${errors.name ? 'border-red-400 focus:ring-red-400' : ''}`}
@@ -93,7 +93,7 @@ export default function RegisterPage() {
               <label className="text-sm font-medium text-ink-700">Email</label>
               <input
                 type="email"
-                placeholder="you@example.com"
+                placeholder="enter your email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
@@ -106,7 +106,7 @@ export default function RegisterPage() {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="At least 8 characters"
+                  placeholder="enter your password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   className={`input pr-10 ${errors.password ? 'border-red-400 focus:ring-red-400' : ''}`}

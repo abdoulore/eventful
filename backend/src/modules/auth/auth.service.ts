@@ -3,7 +3,9 @@ import { getCache, setCache, deleteCache } from '../../config/redis';
 import { hashPassword, comparePassword } from '../../utils/hash';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { AppError } from '../../middlewares/error.middleware';
-import { v4 as uuidv4 } from 'uuid';
+import { sendMail, welcomeTemplate, passwordResetTemplate } from '../../utils/mail';
+import { env } from '../../config/env';
+import crypto from 'crypto';
 
 interface RegisterInput {
   name: string;
@@ -16,6 +18,21 @@ interface LoginInput {
   email: string;
   password: string;
 }
+
+interface ForgotPasswordInput {
+  email: string;
+}
+
+interface ResetPasswordInput {
+  token: string;
+  password: string;
+}
+
+const PASSWORD_RESET_TTL_SECONDS = 30 * 60;
+
+const hashResetToken = (token: string): string => {
+  return crypto.createHash('sha256').update(token).digest('hex');
+};
 
 export const registerUser = async (input: RegisterInput) => {
   const existing = await prisma.user.findUnique({ where: { email: input.email } });
@@ -45,7 +62,62 @@ export const registerUser = async (input: RegisterInput) => {
     },
   });
 
+  await sendMail({
+    to: user.email,
+    subject: 'Welcome to Eventful',
+    html: welcomeTemplate(
+      user.name,
+      user.role === 'CREATOR' ? `${env.CLIENT_URL}/dashboard` : `${env.CLIENT_URL}/events`,
+    ),
+  }).catch((err) => {
+    console.error('Welcome email failed:', err.message);
+  });
+
   return { user, accessToken, refreshToken };
+};
+
+export const requestPasswordReset = async (input: ForgotPasswordInput): Promise<void> => {
+  const user = await prisma.user.findUnique({ where: { email: input.email } });
+
+  // Always return success from the controller so this endpoint cannot be used
+  // to discover whether an email address has an account.
+  if (!user) return;
+
+  const token = crypto.randomBytes(32).toString('hex');
+  const tokenHash = hashResetToken(token);
+  const resetUrl = `${env.CLIENT_URL}/reset-password?token=${token}`;
+
+  await setCache(
+    `password-reset:${tokenHash}`,
+    JSON.stringify({ userId: user.id }),
+    PASSWORD_RESET_TTL_SECONDS,
+  );
+
+  await sendMail({
+    to: user.email,
+    subject: 'Reset your Eventful password',
+    html: passwordResetTemplate(user.name, resetUrl),
+  });
+};
+
+export const resetPassword = async (input: ResetPasswordInput): Promise<void> => {
+  const tokenHash = hashResetToken(input.token);
+  const cacheKey = `password-reset:${tokenHash}`;
+  const cached = await getCache(cacheKey);
+
+  if (!cached) throw new AppError('Invalid or expired reset link', 400);
+
+  const { userId } = JSON.parse(cached) as { userId: string };
+  const hashed = await hashPassword(input.password);
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashed },
+  });
+
+  await prisma.refreshToken.deleteMany({ where: { userId } });
+  await deleteCache(cacheKey);
+  await deleteCache(`user:${userId}`);
 };
 
 export const loginUser = async (input: LoginInput) => {

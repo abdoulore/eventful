@@ -154,19 +154,19 @@ export default function NewEventPage() {
               <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                 <div className="card p-6 flex flex-col gap-4">
                   <h2 className="font-semibold text-ink-900 text-sm">Event Details</h2>
-                  {field('title', 'Title', { placeholder: 'e.g. Lagos Jazz Night' })}
+                  {field('title', 'Title', { placeholder: 'Lagos Jazz Night at Terra Kulture' })}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium text-ink-700">Description</label>
                     <textarea
                       value={form.description}
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
                       rows={4}
-                      placeholder="Describe your event..."
+                      placeholder="Tell guests what to expect, who should come, and what is included."
                       className={`input resize-none ${errors.description ? 'border-red-400' : ''}`}
                     />
                     {errors.description && <p className="text-xs text-red-500">{errors.description}</p>}
                   </div>
-                  {field('location', 'Location', { placeholder: 'e.g. Eko Hotel, Lagos' })}
+                  {field('location', 'Location', { placeholder: 'Terra Kulture, Victoria Island, Lagos' })}
                   <CoverImageUpload
                     value={form.imageUrl}
                     onChange={(imageUrl) => setForm((prev) => ({ ...prev, imageUrl }))}
@@ -193,8 +193,8 @@ export default function NewEventPage() {
                 <div className="card p-6 flex flex-col gap-4">
                   <h2 className="font-semibold text-ink-900 text-sm">Tickets & Pricing</h2>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {field('price', 'Price (NGN)', { type: 'number', min: 0, placeholder: '0 for free' })}
-                    {field('totalTickets', 'Total Tickets', { type: 'number', min: 1, placeholder: '100' })}
+                    {field('price', 'Price (NGN)', { type: 'number', min: 0, placeholder: '5000 or 0 for free' })}
+                    {field('totalTickets', 'Total Tickets', { type: 'number', min: 1, placeholder: '150' })}
                   </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-sm font-medium text-ink-700">Category</label>

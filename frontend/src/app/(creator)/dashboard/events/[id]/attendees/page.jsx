@@ -97,7 +97,7 @@ export default function AttendeesPage() {
 
             <div className="relative">
               <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500" />
-              <input type="text" placeholder="Search by name, email or ticket code..." value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" />
+              <input type="text" placeholder="Search attendee, email, or ticket code" value={search} onChange={(e) => setSearch(e.target.value)} className="input pl-10" />
             </div>
 
             {loading ? (

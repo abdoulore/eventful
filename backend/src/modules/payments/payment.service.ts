@@ -6,12 +6,58 @@ import { generateQRCode } from '../../utils/qr';
 import { scheduleReminderJob } from '../reminders/reminder.scheduler';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from '../../config/env';
+import { sendMail, paymentSuccessTemplate } from '../../utils/mail';
 
 const REMINDER_MULTIPLIERS: Record<string, number> = {
   minutes: 60 * 1000,
   hours:   60 * 60 * 1000,
   days:    24 * 60 * 60 * 1000,
   weeks:   7 * 24 * 60 * 60 * 1000,
+};
+
+const formatEventDate = (date: Date): string => {
+  return new Intl.DateTimeFormat('en-NG', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
+};
+
+const formatAmount = (amount: number): string => {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+  }).format(amount);
+};
+
+const sendPaymentConfirmationEmail = async (
+  userId: string,
+  eventId: string,
+  ticketId: string,
+  amount: number,
+): Promise<void> => {
+  const [user, event, ticket] = await Promise.all([
+    prisma.user.findUnique({ where: { id: userId }, select: { name: true, email: true } }),
+    prisma.event.findUnique({ where: { id: eventId }, select: { title: true, startDate: true } }),
+    prisma.ticket.findUnique({ where: { id: ticketId }, select: { ticketCode: true } }),
+  ]);
+
+  if (!user || !event || !ticket) return;
+
+  await sendMail({
+    to: user.email,
+    subject: `Payment confirmed: ${event.title}`,
+    html: paymentSuccessTemplate({
+      name: user.name,
+      eventName: event.title,
+      eventDate: formatEventDate(event.startDate),
+      eventUrl: `${env.CLIENT_URL}/events/${eventId}`,
+      ticketsUrl: `${env.CLIENT_URL}/tickets`,
+      amount: formatAmount(amount),
+      ticketCode: ticket.ticketCode,
+    }),
+  }).catch((err) => {
+    console.error('Payment confirmation email failed:', err.message);
+  });
 };
 
 // Schedule default reminder set by creator at event creation
@@ -61,7 +107,7 @@ export const initiatePayment = async (userId: string, eventId: string) => {
 
   // Free event — skip Paystack and create ticket directly
   if (event.price === 0) {
-    return prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       const ticketCode = uuidv4();
       const qrCode = await generateQRCode(ticketCode);
 
@@ -92,6 +138,10 @@ export const initiatePayment = async (userId: string, eventId: string) => {
 
       return { free: true, ticket };
     });
+
+    await sendPaymentConfirmationEmail(userId, eventId, result.ticket.id, 0);
+
+    return result;
   }
 
   const user = await prisma.user.findUnique({ where: { id: userId } });
@@ -145,7 +195,7 @@ export const handleWebhook = async (event: Record<string, unknown>) => {
   if (!payment) throw new AppError('Payment record not found', 404);
   if (payment.status === 'SUCCESS') return;
 
-  await prisma.$transaction(async (tx) => {
+  const ticket = await prisma.$transaction(async (tx) => {
     const ticketCode = uuidv4();
     const qrCode = await generateQRCode(ticketCode);
 
@@ -174,12 +224,16 @@ export const handleWebhook = async (event: Record<string, unknown>) => {
 
     // Apply creator's default reminder if set
     await applyDefaultReminder(tx, payment.userId, payment.eventId, ticket.id);
+
+    return ticket;
   });
 
   await deleteCache(`event:${payment.eventId}`);
   await deleteCacheByPattern('events:public:*');
   await deleteCacheByPattern(`tickets:user:${payment.userId}`);
   await deleteCacheByPattern(`payments:creator:*`);
+
+  await sendPaymentConfirmationEmail(payment.userId, payment.eventId, ticket.id, payment.amount);
 };
 
 export const verifyPaymentByReference = async (reference: string, userId: string) => {

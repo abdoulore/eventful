@@ -79,7 +79,7 @@ export default function LoginPage() {
               <label className="text-sm font-medium text-ink-700">Email</label>
               <input
                 type="email"
-                placeholder="you@example.com"
+                placeholder="enter your email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 className={`input ${errors.email ? 'border-red-400 focus:ring-red-400' : ''}`}
@@ -88,11 +88,16 @@ export default function LoginPage() {
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-sm font-medium text-ink-700">Password</label>
+              <div className="flex items-center justify-between gap-3">
+                <label className="text-sm font-medium text-ink-700">Password</label>
+                <Link href="/forgot-password" className="text-xs font-semibold text-brand-700 hover:text-brand-900">
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
+                  placeholder="enter your password"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   className={`input pr-10 ${errors.password ? 'border-red-400 focus:ring-red-400' : ''}`}

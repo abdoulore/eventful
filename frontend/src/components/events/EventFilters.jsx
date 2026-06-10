@@ -25,7 +25,7 @@ export default function EventFilters({ filters, onChange }) {
         <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-500" />
         <input
           type="text"
-          placeholder="Search events or locations"
+          placeholder="Search Lagos jazz, tech meetups, or Ikeja"
           value={filters.search || ''}
           onChange={handleSearch}
           className="input pl-10 pr-10"

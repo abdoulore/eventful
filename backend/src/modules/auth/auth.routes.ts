@@ -1,5 +1,13 @@
 import { Router } from 'express';
-import { register, login, refresh, logout, getMe } from './auth.controller';
+import {
+  register,
+  login,
+  refresh,
+  logout,
+  getMe,
+  forgotPassword,
+  resetPassword,
+} from './auth.controller';
 import { authenticate } from '../../middlewares/auth.middleware';
 import { authLimiter } from '../../middlewares/rateLimit.middleware';
 
@@ -7,6 +15,8 @@ const router = Router();
 
 router.post('/register', authLimiter, register);
 router.post('/login', authLimiter, login);
+router.post('/forgot-password', authLimiter, forgotPassword);
+router.post('/reset-password', authLimiter, resetPassword);
 router.post('/refresh', refresh);
 router.post('/logout', authenticate, logout);
 router.get('/me', authenticate, getMe);

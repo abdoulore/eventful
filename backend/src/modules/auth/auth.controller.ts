@@ -16,6 +16,15 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email'),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, 'Reset token is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
 export const register = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
   const parsed = registerSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -38,6 +47,33 @@ export const login = asyncHandler(async (req: AuthRequest, res: Response, next: 
   const result = await authService.loginUser(parsed.data);
 
   res.status(200).json({ success: true, data: result });
+});
+
+export const forgotPassword = asyncHandler(async (req: AuthRequest, res: Response, _next: NextFunction) => {
+  const parsed = forgotPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: parsed.error.errors[0].message });
+    return;
+  }
+
+  await authService.requestPasswordReset(parsed.data);
+
+  res.status(200).json({
+    success: true,
+    message: 'If an account exists for that email, a reset link has been sent.',
+  });
+});
+
+export const resetPassword = asyncHandler(async (req: AuthRequest, res: Response, _next: NextFunction) => {
+  const parsed = resetPasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ success: false, message: parsed.error.errors[0].message });
+    return;
+  }
+
+  await authService.resetPassword(parsed.data);
+
+  res.status(200).json({ success: true, message: 'Password reset successfully' });
 });
 
 export const refresh = asyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
