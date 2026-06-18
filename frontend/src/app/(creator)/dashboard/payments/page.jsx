@@ -1,13 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Navbar from '../../../../components/layout/Navbar';
 import Sidebar from '../../../../components/layout/Sidebar';
 import Badge from '../../../../components/ui/Badge';
 import { DollarSign, Search } from 'lucide-react';
 import { formatDateTime, formatCurrency } from '../../../../lib/utils';
-import { isAuthenticated, isCreator } from '../../../../lib/auth';
 import api from '../../../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -19,7 +17,6 @@ const statusVariant = {
 };
 
 export default function PaymentsPage() {
-  const router = useRouter();
   const [data, setData] = useState({ payments: [], totalRevenue: 0 });
   const [filtered, setFiltered] = useState([]);
   const [search, setSearch] = useState('');
@@ -27,8 +24,6 @@ export default function PaymentsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated() || !isCreator()) { router.push('/login'); return; }
-
     const fetchPayments = async () => {
       try {
         const res = await api.get('/payments/creator');
@@ -42,7 +37,7 @@ export default function PaymentsPage() {
     };
 
     fetchPayments();
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     let result = data.payments;

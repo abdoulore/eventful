@@ -7,13 +7,17 @@ import Footer from '../components/layout/Footer';
 import EventGrid from '../components/events/EventGrid';
 import { ArrowRight, CalendarDays, MapPin, ShieldCheck, Sparkles, Ticket } from 'lucide-react';
 import api from '../lib/api';
+import { getUser } from '../lib/auth';
 import { formatDate, formatCurrency } from '../lib/utils';
 
 export default function HomePage() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
+    setUser(getUser());
+
     const fetchFeatured = async () => {
       try {
         const res = await api.get('/events?limit=8&status=PUBLISHED');
@@ -28,6 +32,11 @@ export default function HomePage() {
   }, []);
 
   const spotlight = events?.[0];
+
+  const role = user?.role;
+  const isEventeeUser = role === 'EVENTEE';
+  const hostHref = role === 'CREATOR' ? '/dashboard/events/new' : '/register';
+  const hostLabel = role === 'CREATOR' ? 'Create an event' : 'Host an event';
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -55,9 +64,11 @@ export default function HomePage() {
                   Browse events
                   <ArrowRight size={15} />
                 </Link>
-                <Link href="/register" className="btn-secondary inline-flex items-center justify-center gap-2 text-sm px-6 py-3">
-                  Host an event
-                </Link>
+                {!isEventeeUser && (
+                  <Link href={hostHref} className="btn-secondary inline-flex items-center justify-center gap-2 text-sm px-6 py-3">
+                    {hostLabel}
+                  </Link>
+                )}
               </div>
 
               <div className="mt-10 grid grid-cols-3 gap-3 max-w-xl">
@@ -184,25 +195,27 @@ export default function HomePage() {
           <EventGrid events={events} loading={loading} />
         </section>
 
-        <section className="container pb-16">
-          <div className="relative overflow-hidden rounded-3xl bg-brand-600 px-6 py-10 sm:px-10 sm:py-12 text-white shadow-elevated">
-            <div className="max-w-2xl">
-              <h2 className="font-display text-3xl sm:text-4xl leading-tight">
-                Ready to put your event in front of people?
-              </h2>
-              <p className="mt-3 max-w-xl text-sm leading-7 text-white/80">
-                Create events, sell tickets, track analytics, and manage attendees without stitching together extra tools.
-              </p>
-              <Link
-                href="/register"
-                className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-brand-700 transition-colors hover:bg-brand-50"
-              >
-                Start hosting
-                <ArrowRight size={15} />
-              </Link>
+        {!isEventeeUser && (
+          <section className="container pb-16">
+            <div className="relative overflow-hidden rounded-3xl bg-brand-600 px-6 py-10 sm:px-10 sm:py-12 text-white shadow-elevated">
+              <div className="max-w-2xl">
+                <h2 className="font-display text-3xl sm:text-4xl leading-tight">
+                  Ready to put your event in front of people?
+                </h2>
+                <p className="mt-3 max-w-xl text-sm leading-7 text-white/80">
+                  Create events, sell tickets, track analytics, and manage attendees without stitching together extra tools.
+                </p>
+                <Link
+                  href={hostHref}
+                  className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-brand-700 transition-colors hover:bg-brand-50"
+                >
+                  {role === 'CREATOR' ? 'Create an event' : 'Start hosting'}
+                  <ArrowRight size={15} />
+                </Link>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </main>
 
       <Footer />

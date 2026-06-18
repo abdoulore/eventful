@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../../../components/layout/Navbar';
 import Sidebar from '../../../components/layout/Sidebar';
@@ -9,20 +8,16 @@ import StatsCard from '../../../components/analytics/StatsCard';
 import { TicketSalesChart } from '../../../components/analytics/SalesChart';
 import { Calendar, Ticket, Users, DollarSign, ArrowRight, Plus } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../../lib/utils';
-import { isAuthenticated, isCreator } from '../../../lib/auth';
 import api from '../../../lib/api';
 import toast from 'react-hot-toast';
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [overview, setOverview] = useState(null);
   const [trend, setTrend] = useState([]);
   const [topEvents, setTopEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated() || !isCreator()) { router.push('/login'); return; }
-
     const fetchData = async () => {
       try {
         const [overviewRes, trendRes, topRes] = await Promise.all([
@@ -41,7 +36,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, [router]);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">

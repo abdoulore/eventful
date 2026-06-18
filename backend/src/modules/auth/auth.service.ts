@@ -1,5 +1,12 @@
 import prisma from '../../config/prisma';
-import { getCache, setCache, deleteCache } from '../../config/redis';
+import {
+  getCache,
+  setCache,
+  deleteCache,
+  getRequiredRedis,
+  setRequiredRedis,
+  deleteRequiredRedis,
+} from '../../config/redis';
 import { hashPassword, comparePassword } from '../../utils/hash';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../../utils/jwt';
 import { AppError } from '../../middlewares/error.middleware';
@@ -29,6 +36,7 @@ interface ResetPasswordInput {
 }
 
 const PASSWORD_RESET_TTL_SECONDS = 30 * 60;
+const PASSWORD_RESET_UNAVAILABLE = 'Password reset is temporarily unavailable. Please try again later.';
 
 const hashResetToken = (token: string): string => {
   return crypto.createHash('sha256').update(token).digest('hex');
@@ -62,7 +70,7 @@ export const registerUser = async (input: RegisterInput) => {
     },
   });
 
-  await sendMail({
+  void sendMail({
     to: user.email,
     subject: 'Welcome to Eventful',
     html: welcomeTemplate(
@@ -87,23 +95,36 @@ export const requestPasswordReset = async (input: ForgotPasswordInput): Promise<
   const tokenHash = hashResetToken(token);
   const resetUrl = `${env.CLIENT_URL}/reset-password?token=${token}`;
 
-  await setCache(
-    `password-reset:${tokenHash}`,
-    JSON.stringify({ userId: user.id }),
-    PASSWORD_RESET_TTL_SECONDS,
-  );
+  try {
+    await setRequiredRedis(
+      `password-reset:${tokenHash}`,
+      JSON.stringify({ userId: user.id }),
+      PASSWORD_RESET_TTL_SECONDS,
+    );
+  } catch (err) {
+    console.error('Password reset token storage failed:', (err as Error).message);
+    throw new AppError(PASSWORD_RESET_UNAVAILABLE, 503);
+  }
 
-  await sendMail({
+  void sendMail({
     to: user.email,
     subject: 'Reset your Eventful password',
     html: passwordResetTemplate(user.name, resetUrl),
+  }).catch((err) => {
+    console.error('Password reset email failed:', err.message);
   });
 };
 
 export const resetPassword = async (input: ResetPasswordInput): Promise<void> => {
   const tokenHash = hashResetToken(input.token);
   const cacheKey = `password-reset:${tokenHash}`;
-  const cached = await getCache(cacheKey);
+  let cached: string | null;
+  try {
+    cached = await getRequiredRedis(cacheKey);
+  } catch (err) {
+    console.error('Password reset token lookup failed:', (err as Error).message);
+    throw new AppError(PASSWORD_RESET_UNAVAILABLE, 503);
+  }
 
   if (!cached) throw new AppError('Invalid or expired reset link', 400);
 
@@ -116,7 +137,7 @@ export const resetPassword = async (input: ResetPasswordInput): Promise<void> =>
   });
 
   await prisma.refreshToken.deleteMany({ where: { userId } });
-  await deleteCache(cacheKey);
+  await deleteRequiredRedis(cacheKey);
   await deleteCache(`user:${userId}`);
 };
 

@@ -3,7 +3,6 @@ import { getCache, setCache, deleteCacheByPattern, deleteCache } from '../../con
 import { AppError } from '../../middlewares/error.middleware';
 import { initializePayment, verifyPayment } from './paystack.service';
 import { generateQRCode } from '../../utils/qr';
-import { scheduleReminderJob } from '../reminders/reminder.scheduler';
 import { v4 as uuidv4 } from 'uuid';
 import { env } from '../../config/env';
 import { sendMail, paymentSuccessTemplate } from '../../utils/mail';
@@ -78,19 +77,9 @@ const applyDefaultReminder = async (
 
   if (reminderAt <= new Date()) return;
 
-  const reminder = await tx.reminder.create({
+  await tx.reminder.create({
     data: { userId, eventId, reminderAt },
   });
-
-  await scheduleReminderJob(
-    reminder.id,
-    userId,
-    event.id,
-    event.title,
-    event.startDate.toISOString(),
-    user.email,
-    reminderAt,
-  );
 };
 
 export const initiatePayment = async (userId: string, eventId: string) => {

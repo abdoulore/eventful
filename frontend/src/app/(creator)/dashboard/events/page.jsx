@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../../../../components/layout/Navbar';
 import Sidebar from '../../../../components/layout/Sidebar';
@@ -10,7 +9,6 @@ import Modal from '../../../../components/ui/Modal';
 import ShareButtons from '../../../../components/shared/ShareButtons';
 import { Plus, Calendar, MapPin, Ticket, Pencil, Trash2, Users, Share2 } from 'lucide-react';
 import { formatDate, formatCurrency, generateShareLinks } from '../../../../lib/utils';
-import { isAuthenticated, isCreator } from '../../../../lib/auth';
 import api from '../../../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -22,7 +20,6 @@ const statusVariant = {
 };
 
 export default function CreatorEventsPage() {
-  const router = useRouter();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -30,9 +27,8 @@ export default function CreatorEventsPage() {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated() || !isCreator()) { router.push('/login'); return; }
     fetchEvents();
-  }, [router]);
+  }, []);
 
   const fetchEvents = async () => {
     try {

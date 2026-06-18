@@ -1,7 +1,6 @@
 import prisma from '../../config/prisma';
 import { getCache, setCache, deleteCache } from '../../config/redis';
 import { AppError } from '../../middlewares/error.middleware';
-import { scheduleReminderJob, cancelReminderJob } from './reminder.scheduler';
 
 interface ReminderOffset {
   value: number;
@@ -54,16 +53,7 @@ export const createReminder = async (userId: string, input: CreateReminderInput)
     },
   });
 
-  await scheduleReminderJob(
-    reminder.id,
-    userId,
-    event.id,
-    event.title,
-    event.startDate.toISOString(),
-    user.email,
-    reminderAt,
-  );
-
+  // The reminder row itself is the schedule; the cron sweep picks it up when due.
   await deleteCache(`reminders:user:${userId}`);
 
   return reminder;
@@ -103,16 +93,6 @@ export const createEventDefaultReminder = async (
           reminderAt,
         },
       });
-
-      await scheduleReminderJob(
-        reminder.id,
-        ticket.userId,
-        event.id,
-        event.title,
-        event.startDate.toISOString(),
-        ticket.user.email,
-        reminderAt,
-      );
 
       return reminder;
     }),
@@ -174,7 +154,6 @@ export const deleteReminder = async (reminderId: string, userId: string) => {
   if (reminder.userId !== userId) throw new AppError('Not authorized', 403);
   if (reminder.sent) throw new AppError('Reminder has already been sent', 400);
 
-  await cancelReminderJob(reminderId);
   await prisma.reminder.delete({ where: { id: reminderId } });
   await deleteCache(`reminders:user:${userId}`);
 };

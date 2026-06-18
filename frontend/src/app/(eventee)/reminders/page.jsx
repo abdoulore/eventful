@@ -5,22 +5,21 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../../../components/layout/Navbar';
 import Footer from '../../../components/layout/Footer';
 import Badge from '../../../components/ui/Badge';
+import AuthGuard from '../../../components/auth/AuthGuard';
 import { Bell, BellOff, Calendar, Trash2 } from 'lucide-react';
 import { formatDateTime, formatDate } from '../../../lib/utils';
-import { isAuthenticated, isEventee } from '../../../lib/auth';
 import api from '../../../lib/api';
 import toast from 'react-hot-toast';
 
-export default function RemindersPage() {
+function RemindersContent() {
   const router = useRouter();
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(null);
 
   useEffect(() => {
-    if (!isAuthenticated() || !isEventee()) { router.push('/login'); return; }
     fetchReminders();
-  }, [router]);
+  }, []);
 
   const fetchReminders = async () => {
     try {
@@ -141,5 +140,13 @@ export default function RemindersPage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function RemindersPage() {
+  return (
+    <AuthGuard role="EVENTEE">
+      <RemindersContent />
+    </AuthGuard>
   );
 }

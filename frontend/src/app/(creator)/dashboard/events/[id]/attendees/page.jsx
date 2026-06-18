@@ -7,7 +7,6 @@ import Sidebar from '../../../../../../components/layout/Sidebar';
 import Badge from '../../../../../../components/ui/Badge';
 import { ArrowLeft, Search, CheckCircle, Clock, XCircle } from 'lucide-react';
 import { formatDateTime } from '../../../../../../lib/utils';
-import { isAuthenticated, isCreator } from '../../../../../../lib/auth';
 import api from '../../../../../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -32,8 +31,6 @@ export default function AttendeesPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated() || !isCreator()) { router.push('/login'); return; }
-
     const fetchAttendees = async () => {
       try {
         const res = await api.get(`/events/${id}/attendees`);

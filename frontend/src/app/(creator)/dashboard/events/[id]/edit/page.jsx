@@ -6,7 +6,6 @@ import Navbar from '../../../../../../components/layout/Navbar';
 import Sidebar from '../../../../../../components/layout/Sidebar';
 import CoverImageUpload from '../../../../../../components/events/CoverImageUpload';
 import { ArrowLeft } from 'lucide-react';
-import { isAuthenticated, isCreator } from '../../../../../../lib/auth';
 import api from '../../../../../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -23,8 +22,6 @@ export default function EditEventPage() {
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated() || !isCreator()) { router.push('/login'); return; }
-
     const fetchEvent = async () => {
       try {
         const res = await api.get(`/events/${id}`);

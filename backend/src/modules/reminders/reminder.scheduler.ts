@@ -1,98 +1,90 @@
-import { Queue, Worker, Job } from 'bullmq';
+import cron from 'node-cron';
 import { sendMail, reminderTemplate } from '../../utils/mail';
 import prisma from '../../config/prisma';
 import { env } from '../../config/env';
 
-const bullRedisUrl = new URL(env.REDIS_URL);
-const bullConnection = {
-  host: bullRedisUrl.hostname,
-  port: Number(bullRedisUrl.port || 6379),
-  username: bullRedisUrl.username || undefined,
-  password: bullRedisUrl.password || undefined,
-  tls: bullRedisUrl.protocol === 'rediss:' ? {} : undefined,
-  maxRetriesPerRequest: null,
-};
+// How many due reminders to process per sweep.
+const BATCH_SIZE = 100;
 
-// Queue for all reminder jobs
-export const reminderQueue = new Queue('reminders', {
-  connection: bullConnection,
-  defaultJobOptions: {
-    removeOnComplete: true,
-    removeOnFail: false,
-    attempts: 3,
-    backoff: { type: 'exponential', delay: 5000 },
-  },
-});
+let task: ReturnType<typeof cron.schedule> | null = null;
+let running = false;
 
-interface ReminderJobData {
-  reminderId: string;
-  userId: string;
-  eventId: string;
-  eventName: string;
-  eventDate: string;
-  userEmail: string;
-}
+const formatEventDate = (date: Date): string =>
+  new Intl.DateTimeFormat('en-NG', { dateStyle: 'full', timeStyle: 'short' }).format(date);
 
-// Worker that processes reminder jobs when they become due
-export const reminderWorker = new Worker<ReminderJobData>(
-  'reminders',
-  async (job: Job<ReminderJobData>) => {
-    const { reminderId, userEmail, eventName, eventDate, eventId } = job.data;
+/**
+ * One sweep: find reminders that are due (reminderAt in the past) and not yet
+ * sent, email each one, and mark it sent. A failed send is left unsent so the
+ * next sweep retries it. This replaces the BullMQ worker that polled Redis
+ * around the clock — scheduling a reminder is now just inserting a row, and
+ * cancelling one is just deleting it.
+ */
+export const processDueReminders = async (): Promise<void> => {
+  if (running) return; // never let two sweeps overlap
+  running = true;
 
-    const eventUrl = `${env.CLIENT_URL}/events/${eventId}`;
-    const html = reminderTemplate(eventName, eventDate, eventUrl);
-
-    await sendMail({
-      to: userEmail,
-      subject: `Reminder: ${eventName} is coming up!`,
-      html,
+  try {
+    const due = await prisma.reminder.findMany({
+      where: { sent: false, reminderAt: { lte: new Date() } },
+      take: BATCH_SIZE,
+      include: {
+        user: { select: { email: true } },
+        event: { select: { id: true, title: true, startDate: true } },
+      },
     });
 
-    // Mark reminder as sent
-    await prisma.reminder.update({
-      where: { id: reminderId },
-      data: { sent: true },
-    });
-  },
-  { connection: bullConnection },
-);
+    for (const reminder of due) {
+      try {
+        const claimed = await prisma.reminder.updateMany({
+          where: { id: reminder.id, sent: false },
+          data: { sent: true },
+        });
 
-reminderWorker.on('completed', (job) => {
-  console.log(`Reminder job ${job.id} completed`);
-});
+        if (claimed.count === 0) continue;
 
-reminderWorker.on('failed', (job, err) => {
-  console.error(`Reminder job ${job?.id} failed:`, err.message);
-});
+        await sendMail({
+          to: reminder.user.email,
+          subject: `Reminder: ${reminder.event.title} is coming up!`,
+          html: reminderTemplate(
+            reminder.event.title,
+            formatEventDate(reminder.event.startDate),
+            `${env.CLIENT_URL}/events/${reminder.event.id}`,
+          ),
+        });
 
-// Schedule a reminder job to run at a specific time
-export const scheduleReminderJob = async (
-  reminderId: string,
-  userId: string,
-  eventId: string,
-  eventName: string,
-  eventDate: string,
-  userEmail: string,
-  reminderAt: Date,
-): Promise<void> => {
-  const delay = reminderAt.getTime() - Date.now();
-
-  if (delay <= 0) return; // Don't schedule past reminders
-
-  await reminderQueue.add(
-    `reminder:${reminderId}`,
-    { reminderId, userId, eventId, eventName, eventDate, userEmail },
-    { delay },
-  );
+      } catch (err) {
+        await prisma.reminder.update({
+          where: { id: reminder.id },
+          data: { sent: false },
+        }).catch((resetErr) => {
+          console.error(`Reminder ${reminder.id} reset failed:`, (resetErr as Error).message);
+        });
+        console.error(`Reminder ${reminder.id} failed:`, (err as Error).message);
+        // Leave sent=false so it's retried on the next sweep.
+      }
+    }
+  } catch (err) {
+    console.error('Reminder sweep failed:', (err as Error).message);
+  } finally {
+    running = false;
+  }
 };
 
-// Remove a scheduled reminder job from the queue
-export const cancelReminderJob = async (reminderId: string): Promise<void> => {
-  const job = await reminderQueue.getJob(`reminder:${reminderId}`);
-  if (job) await job.remove();
+export const startReminderScheduler = (): void => {
+  if (task) return;
+  task = cron.schedule('* * * * *', () => {
+    void processDueReminders();
+  });
+  console.log('Reminder scheduler started (node-cron, every minute)');
+};
+
+export const stopReminderScheduler = (): void => {
+  if (task) {
+    task.stop();
+    task = null;
+  }
 };
 
 export const closeReminderScheduler = async (): Promise<void> => {
-  await reminderWorker.close();
-  await reminderQueue.close();
+  stopReminderScheduler();
 };

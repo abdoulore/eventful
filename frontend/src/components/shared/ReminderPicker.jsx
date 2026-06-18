@@ -15,7 +15,7 @@ const presets = [
 
 const units = ['minutes', 'hours', 'days', 'weeks'];
 
-export default function ReminderPicker({ eventId }) {
+export default function ReminderPicker({ eventId, onSuccess }) {
   const [mode, setMode] = useState('preset');
   const [selected, setSelected] = useState(null);
   const [custom, setCustom] = useState({ value: 1, unit: 'hours' });
@@ -29,6 +29,7 @@ export default function ReminderPicker({ eventId }) {
     try {
       await api.post('/reminders', { eventId, offset });
       toast.success('Reminder set successfully');
+      onSuccess?.();
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to set reminder');
     } finally {

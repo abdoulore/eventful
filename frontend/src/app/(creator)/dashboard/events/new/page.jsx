@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '../../../../../components/layout/Navbar';
 import Sidebar from '../../../../../components/layout/Sidebar';
 import CoverImageUpload from '../../../../../components/events/CoverImageUpload';
 import { ArrowLeft } from 'lucide-react';
-import { isAuthenticated, isCreator } from '../../../../../lib/auth';
 import api from '../../../../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -22,7 +21,6 @@ const reminderPresets = [
 
 export default function NewEventPage() {
   const router = useRouter();
-  const [ready, setReady] = useState(false);
   const [form, setForm] = useState({
     title: '', description: '', location: '', imageUrl: '',
     startDate: '', endDate: '', price: '', totalTickets: '', category: '',
@@ -32,14 +30,6 @@ export default function NewEventPage() {
   const [loading, setLoading] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [createdEventId, setCreatedEventId] = useState(null);
-
-  useEffect(() => {
-    if (!isAuthenticated() || !isCreator()) {
-      router.push('/login');
-      return;
-    }
-    setReady(true);
-  }, [router]);
 
   const validate = () => {
     const errs = {};
@@ -99,8 +89,6 @@ export default function NewEventPage() {
       {errors[key] && <p className="text-xs text-red-500">{errors[key]}</p>}
     </div>
   );
-
-  if (!ready) return null;
 
   return (
     <div className="min-h-screen flex flex-col">

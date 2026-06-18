@@ -2,7 +2,7 @@ import app from './app';
 import { env } from './config/env';
 import prisma from './config/prisma';
 import redis from './config/redis';
-import { reminderWorker } from './modules/reminders/reminder.scheduler';
+import { startReminderScheduler, stopReminderScheduler } from './modules/reminders/reminder.scheduler';
 
 const PORT = Number(env.PORT) || 5000;
 
@@ -11,11 +11,12 @@ const start = async (): Promise<void> => {
     await prisma.$connect();
     console.log('Database connected');
 
-    await redis.connect();
+    // Redis is only a cache now (fail-open). Don't block or crash startup on it —
+    // the API runs fine without it, just without caching.
+    redis.connect()
+      .catch((err) => console.error('Redis unavailable, continuing without cache:', err.message));
 
-    // Boot the reminder worker so queued jobs are processed
-    console.log('Reminder worker started');
-    reminderWorker.resume();
+    startReminderScheduler();
 
     app.listen(PORT, () => {
       console.log(`Eventful API running on port ${PORT}`);
@@ -28,7 +29,7 @@ const start = async (): Promise<void> => {
 };
 
 process.on('SIGTERM', async () => {
-  await reminderWorker.close();
+  stopReminderScheduler();
   await prisma.$disconnect();
   process.exit(0);
 });

@@ -258,7 +258,7 @@ export default function EventDetailPage() {
         title="Set a Reminder"
         size="sm"
       >
-        <ReminderPicker eventId={id} />
+        <ReminderPicker eventId={id} onSuccess={() => setShowReminder(false)} />
       </Modal>
 
       <Footer />

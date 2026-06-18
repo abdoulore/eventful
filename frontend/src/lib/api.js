@@ -3,6 +3,7 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
 });
 
 // Attach access token to every request
@@ -50,6 +51,17 @@ api.interceptors.response.use(
         localStorage.removeItem('user');
         window.location.href = '/login';
       }
+    }
+
+    if (!error.response) {
+      error.response = {
+        data: {
+          message:
+            error.code === 'ECONNABORTED'
+              ? 'The server took too long to respond. Please try again.'
+              : 'Cannot reach the server. Make sure the backend is running.',
+        },
+      };
     }
 
     return Promise.reject(error);

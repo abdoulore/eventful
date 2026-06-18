@@ -9,6 +9,9 @@ const transporter = nodemailer.createTransport({
     user: env.MAIL_USER,
     pass: env.MAIL_PASS,
   },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 interface MailOptions {

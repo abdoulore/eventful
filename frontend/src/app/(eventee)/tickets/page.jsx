@@ -5,8 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '../../../components/layout/Navbar';
 import Footer from '../../../components/layout/Footer';
 import TicketCard from '../../../components/tickets/TicketCard';
+import AuthGuard from '../../../components/auth/AuthGuard';
 import { Ticket } from 'lucide-react';
-import { isAuthenticated, isEventee } from '../../../lib/auth';
 import api from '../../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -19,8 +19,6 @@ function TicketsPageContent() {
   const [filter, setFilter] = useState('ALL');
 
   useEffect(() => {
-    if (!isAuthenticated() || !isEventee()) { router.push('/login'); return; }
-
     let cancelled = false;
 
     const loadTickets = async () => {
@@ -123,8 +121,10 @@ function TicketsPageContent() {
 
 export default function TicketsPage() {
   return (
-    <Suspense fallback={null}>
-      <TicketsPageContent />
-    </Suspense>
+    <AuthGuard role="EVENTEE">
+      <Suspense fallback={null}>
+        <TicketsPageContent />
+      </Suspense>
+    </AuthGuard>
   );
 }
